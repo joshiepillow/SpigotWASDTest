@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+group 'SpigotTest'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.9
+
+repositories {
+    mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+}
+
+dependencies {
+    testImplementation group: 'junit', name: 'junit', version: '4.13.1'
+    compileOnly 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
+    implementation 'org.javatuples:javatuples:1.2'
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "com.baeldung.fatjar.Application"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+targetCompatibility = JavaVersion.VERSION_1_9

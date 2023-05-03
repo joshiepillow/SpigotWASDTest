@@ -1,0 +1,6 @@
+name: SpigotTest
+main: com.floweytf.SpigotTest.Main
+version: 0
+commands:
+  test:
+  teststop:
