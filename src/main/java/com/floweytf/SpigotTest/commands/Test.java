@@ -23,59 +23,30 @@ public class Test implements CommandExecutor {
         UP, DOWN, LEFT, RIGHT, NONE
     }
     private class DataStructure {
-        DataStructure(int nD, Direction lD, HashMap<Direction, Integer> lP)  {
+        DataStructure(int nD, Direction lD, int taskID)  {
             noteDelay = nD;
+            noteNumber = 0;
             lastDirection = lD;
-            lastPressWASD = lP;
+            lastPressWASD = new HashMap<>();
+            lastPressWASD.put(Direction.UP, Long.MIN_VALUE);
+            lastPressWASD.put(Direction.DOWN, Long.MIN_VALUE);
+            lastPressWASD.put(Direction.LEFT, Long.MIN_VALUE);
+            lastPressWASD.put(Direction.RIGHT, Long.MIN_VALUE);
+            lastPressWASD.put(Direction.NONE, Long.MIN_VALUE);
         }
         public int noteDelay;
+        public int noteNumber;
         public Direction lastDirection;
-        public HashMap<Direction, Integer> lastPressWASD;
+        public HashMap<Direction, Long> lastPressWASD;
+        public int taskID;
     }
     public static HashMap<UUID, DataStructure> hashMap = new HashMap<>();
-    public static List<String> correctSequence = List.of("+X", "+X", "+Z", "+Z");
+    public static List<Direction> correctSequence = List.of(Direction.UP, Direction.DOWN, Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT);
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-            Player psender = (Player) sender;
-            int delayTicks = Integer.parseInt(args[0]);
-            Location l = psender.getLocation().setDirection(new Vector(1, 0, 0));
-            psender.teleport(l);
-            psender.
-            int id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(Main.class), () -> {
-                Player player = Bukkit.getServer().getPlayer(psender.getUniqueId());
-                if (player == null) { // If player is not online
-                    Bukkit.getScheduler().cancelTask(hashMap.get(psender.getUniqueId()).getValue0());
-                    hashMap.remove(psender.getUniqueId());
-                    return;
-                }
-                player.sendTitle(ChatColor.DARK_RED + "Test", null, 0, delayTicks, 0);
-                Vector v = player.getLocation().subtract(l).toVector();
-                String s = "";
-                if (!v.isZero()) {
-                    if (v.getX() + v.getZ() > 0) {
-                        if (v.getX() - v.getZ() > 0) {
-
-                            s = "+X";
-                        } else {
-                            s = "+Z";
-                        }
-                    } else {
-                        if (v.getX() - v.getZ() > 0) {
-                            s = "-Z";
-                        } else {
-                            s = "-X";
-                        }
-                    }
-                    if (!hashMap.get(player.getUniqueId()).getValue1().equals(s)) {
-                        player.sendMessage(s);
-                    }
-                    player.teleport(l);
-
-                }
-                hashMap.put(player.getUniqueId(), new Pair<>(hashMap.get(player.getUniqueId()).getValue0(), s));
-            }, 0, delayTicks);
-            hashMap.put(psender.getUniqueId(), new Pair<>(id, ""));
+            Player p = (Player) sender;
+            setup(p, Integer.parseInt(args[0]));
         } catch (Exception e) {
             Bukkit.getLogger().warning(e.toString());
             return false;
@@ -92,22 +63,42 @@ public class Test implements CommandExecutor {
         e.setByte("NoAI", (byte) 1);
         m.addPassenger(p);
 
-        hashMap.put(p.getUniqueId(), new DataStructure(noteDelay, Direction.NONE, new HashMap<>()));
+        int taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(Main.class), () -> loop(p), noteDelay, noteDelay);
+        p.sendMessage(String.format("Next direction is %s", correctSequence.get(0)));
+        hashMap.put(p.getUniqueId(), new DataStructure(noteDelay, Direction.NONE, taskID));
     }
 
-    void loop(int n, Player p) {
+    void loop(Player p) {
+        if (!hashMap.containsKey(p.getUniqueId())) cancelTask(p);
 
-
+        DataStructure ds = hashMap.get(p.getUniqueId());
+        p.sendMessage(String.format("You were %d ticks early.", ds.lastPressWASD.get(correctSequence.get(ds.noteNumber))));
+        ds.noteNumber++;
+        if (ds.noteNumber >= correctSequence.size()) {
+            cancelTask(p);
+            return;
+        }
+        p.sendMessage(String.format("Next direction is %s", correctSequence.get(ds.noteNumber)));
     }
 
     public static void update(Player p, float swSpeed, float fwSpeed) {
         if (!hashMap.containsKey(p.getUniqueId())) return;
+
         Direction d = Direction.NONE;
         if (fwSpeed != 0 || swSpeed != 0)
             d = Math.abs(fwSpeed) > Math.abs(swSpeed) ? (fwSpeed > 0 ? Direction.UP : Direction.DOWN) : (swSpeed > 0 ? Direction.RIGHT : Direction.LEFT);
-        HashMap<UUID, DataStructure> hm = hashMap.get(p.getUniqueId());
-        if (hm.lastDirection == d) return;
-        
 
+        DataStructure ds = hashMap.get(p.getUniqueId());
+        if (ds.lastDirection == d) return;
+
+        ds.lastDirection = d;
+        ds.lastPressWASD.put(d, p.getWorld().getTime());
+    }
+
+    public static void cancelTask(Player p) {
+        if (!hashMap.containsKey(p.getUniqueId())) return;
+
+        Bukkit.getScheduler().cancelTask(hashMap.get(p.getUniqueId()).taskID);
+        hashMap.remove(p.getUniqueId());
     }
 }

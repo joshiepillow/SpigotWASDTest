@@ -11,7 +11,7 @@ public class TestStop implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             Player psender = (Player) sender;
-            Bukkit.getScheduler().cancelTask(Test.hashMap.get(psender.getUniqueId()).getValue0());
+            Test.cancelTask(psender);
         } catch (Exception e) {
             Bukkit.getLogger().warning(e.toString());
             return false;
