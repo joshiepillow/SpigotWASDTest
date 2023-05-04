@@ -23,16 +23,17 @@ public class Test implements CommandExecutor {
         UP, DOWN, LEFT, RIGHT, NONE
     }
     private class DataStructure {
-        DataStructure(int nD, Direction lD, int taskID)  {
+        DataStructure(int nD, Direction lD, int tID)  {
             noteDelay = nD;
             noteNumber = 0;
             lastDirection = lD;
             lastPressWASD = new HashMap<>();
-            lastPressWASD.put(Direction.UP, Long.MIN_VALUE);
-            lastPressWASD.put(Direction.DOWN, Long.MIN_VALUE);
-            lastPressWASD.put(Direction.LEFT, Long.MIN_VALUE);
-            lastPressWASD.put(Direction.RIGHT, Long.MIN_VALUE);
-            lastPressWASD.put(Direction.NONE, Long.MIN_VALUE);
+            lastPressWASD.put(Direction.UP, Long.MIN_VALUE/2);
+            lastPressWASD.put(Direction.DOWN, Long.MIN_VALUE/2);
+            lastPressWASD.put(Direction.LEFT, Long.MIN_VALUE/2);
+            lastPressWASD.put(Direction.RIGHT, Long.MIN_VALUE/2);
+            lastPressWASD.put(Direction.NONE, Long.MIN_VALUE/2);
+            taskID = tID;
         }
         public int noteDelay;
         public int noteNumber;
@@ -56,6 +57,7 @@ public class Test implements CommandExecutor {
 
 
     void setup(Player p, int noteDelay) {
+        cancelTask(p);
         Location l = p.getLocation().setDirection(new Vector(1, 0, 0));
         p.teleport(l);
         Minecart m = (Minecart) p.getWorld().spawnEntity(l, EntityType.MINECART);
@@ -72,7 +74,7 @@ public class Test implements CommandExecutor {
         if (!hashMap.containsKey(p.getUniqueId())) cancelTask(p);
 
         DataStructure ds = hashMap.get(p.getUniqueId());
-        p.sendMessage(String.format("You were %d ticks early.", ds.lastPressWASD.get(correctSequence.get(ds.noteNumber))));
+        p.sendMessage(String.format("You were %d ticks early.", p.getWorld().getTime() - ds.lastPressWASD.get(correctSequence.get(ds.noteNumber))));
         ds.noteNumber++;
         if (ds.noteNumber >= correctSequence.size()) {
             cancelTask(p);
@@ -99,6 +101,7 @@ public class Test implements CommandExecutor {
         if (!hashMap.containsKey(p.getUniqueId())) return;
 
         Bukkit.getScheduler().cancelTask(hashMap.get(p.getUniqueId()).taskID);
+        if (p.getVehicle() != null) p.getVehicle().remove();
         hashMap.remove(p.getUniqueId());
     }
 }

@@ -21,7 +21,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.8.0'
     implementation 'org.javatuples:javatuples:1.2'
-    implementation 'de.tr7zw:item-nbt-api-plugin:2.11.2'
+    compileOnly 'de.tr7zw:item-nbt-api-plugin:2.11.2'
 }
 
 jar {

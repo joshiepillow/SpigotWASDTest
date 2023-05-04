@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.FieldAccessException;
 import com.floweytf.SpigotTest.commands.Test;
 import com.floweytf.SpigotTest.commands.TestStop;
+import com.floweytf.SpigotTest.listeners.EntityDismountEventListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -14,6 +15,7 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         this.getCommand("test").setExecutor(new Test());
         this.getCommand("teststop").setExecutor(new TestStop());
+        getServer().getPluginManager().registerEvents(new EntityDismountEventListener(), this);
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this, PacketType.Play.Client.STEER_VEHICLE){
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -29,6 +31,7 @@ public class Main extends JavaPlugin {
                 }
             }
         });
+
     }
 
     @Override
