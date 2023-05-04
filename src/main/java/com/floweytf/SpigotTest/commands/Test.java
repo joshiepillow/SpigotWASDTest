@@ -102,7 +102,12 @@ public class Test implements CommandExecutor {
 
     public static void update(Player p, float swSpeed, float fwSpeed) {
         if (!hashMap.containsKey(p.getUniqueId())) return;
-        if (fwSpeed > swSpeed)
+        Direction d = Direction.NONE;
+        if (fwSpeed != 0 || swSpeed != 0)
+            d = Math.abs(fwSpeed) > Math.abs(swSpeed) ? (fwSpeed > 0 ? Direction.UP : Direction.DOWN) : (swSpeed > 0 ? Direction.RIGHT : Direction.LEFT);
+        HashMap<UUID, DataStructure> hm = hashMap.get(p.getUniqueId());
+        if (hm.lastDirection == d) return;
+        
 
     }
 }
